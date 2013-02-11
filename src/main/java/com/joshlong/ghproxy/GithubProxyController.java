@@ -1,6 +1,5 @@
 package com.joshlong.ghproxy;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -11,6 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Simple controller that simply forwards the request to the
+ * appropriate <A href="http://github.com">GitHub</A> repository.
+ *
  * @author Josh Long
  */
 @Controller
@@ -25,7 +27,6 @@ public class GithubProxyController {
         vars.put("user", user);
         vars.put("repo", repos);
         vars.put("branch", branch);
-//        vars.put("file", filePath);
         ResponseEntity<String> code = restTemplate.getForEntity(
                 urlPath + filePath(filePath), String.class, vars);
         return code.getBody();
@@ -37,44 +38,32 @@ public class GithubProxyController {
         return fp;
     }
 
+    @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
-    public @ResponseBody String  code(@PathVariable("user") String user,
-                                       @PathVariable("repo") String repo,
-                                       @PathVariable("branch") String branch,
-                                       @RequestParam("file") String file,
-                                       @RequestParam(value = "callback", required = false) String callback) {
-
-
+    public String code(@PathVariable("user") String user,
+                       @PathVariable("repo") String repo,
+                       @PathVariable("branch") String branch,
+                       @RequestParam("file") String file,
+                       @RequestParam(value = "callback", required = false) String callback) {
         String response;
-
         String content = contentForGithubPage(user, repo, branch, file);
-
         if (StringUtils.hasText(callback)) {
             response = callback + "(\"" + encodeForJson(content) + "\")";
         } else {
             response = content;
         }
-        return response ; //new ResponseEntity<String>(response, HttpStatus.OK);
+        return response;
     }
 
-    protected String encodeForJson ( String content ){
-     return content.replaceAll("\"", "\\\"") ;
+    protected String encodeForJson(String content) {
+        return content.replaceAll("\"", "\\\"");
     }
 
-    public static void main(String[] args) throws Throwable {
+    /*public static void main(String[] args) throws Throwable {
         //https://github.com/joshlong/the-spring-tutorial/blob/tut_web/code/web/src/main/java/org/springsource/examples/spring31/web/config/servlet/CrmWebApplicationInitializer.java
         GithubProxyController githubProxyController = new GithubProxyController();
         String branchCode = githubProxyController.contentForGithubPage("joshlong", "the-spring-tutorial", "tut_web",
                 "web/src/main/java/org/springsource/examples/spring31/web/config/servlet/CrmWebApplicationInitializer.java");
         System.out.println(branchCode);
-    }
-
-
-/*
-    @RequestMapping(value = "/crm/signin.html", method = RequestMethod.GET)
-    public String showSignInPage(Model model, @RequestParam(value = "error", required = false, defaultValue = "false") String err) {
-
     }*/
-
-
 }

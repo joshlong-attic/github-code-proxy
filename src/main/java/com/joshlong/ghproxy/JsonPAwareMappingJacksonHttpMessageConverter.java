@@ -5,88 +5,24 @@ import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
-import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
-import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.util.Assert;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
 /**
- * Simple replacement for <CODE>web.xml</CODE> that is constructed entirely in Java code.
- *
- * @author Josh Long
- */
-@SuppressWarnings("unused")
-public class CrmWebApplicationInitializer implements WebApplicationInitializer {
-
-    private String patternAll = "/";
-
-    private String springServletName = "spring";
-
-    @Override
-    public void onStartup(ServletContext servletContext) throws ServletException {
-
-        //// Listener Registration
-        AnnotationConfigWebApplicationContext ac = new AnnotationConfigWebApplicationContext();
-        ac.setServletContext(servletContext);
-        ac.register(WebMvcConfiguration.class);
-        ac.refresh();
-        servletContext.addListener(new ContextLoaderListener(ac));
-
-        //// DispatcherServlet Registration
-        DispatcherServlet dispatcherServlet = new DispatcherServlet();
-        dispatcherServlet.setContextClass(AnnotationConfigWebApplicationContext.class);
-        ServletRegistration.Dynamic spring = servletContext.addServlet(this.springServletName, dispatcherServlet);
-        spring.addMapping(patternAll);
-        spring.setAsyncSupported(true);
-
-    }
-
-
-    @Configuration
-    @EnableWebMvc
-    public static class WebMvcConfiguration extends WebMvcConfigurerAdapter {
-        @Bean
-        public GithubProxyController githubProxyController() {
-            return new GithubProxyController();
-        }
-
-        public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
-            configurer.enable();
-        }
-
-        @Override
-        public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-            converters.add(new JsonPAwareMappingJacksonHttpMessageConverter());
-        }
-    }
-
-
-}
-
-/**
- * Based on an idea from http://www.iceycake.com/2012/06/xml-json-jsonp-web-service-endpoints-spring-3-1/
+ * {@link MappingJacksonHttpMessageConverter mapping jackson http message converter}
+ * subclass that can also handle JSONP requests. Based largely on the work
  *
  * @author Andy Chan
  * @author Josh Long
  */
-class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
+public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
 
     private String callbackFunctionName = "callback";
 
@@ -164,7 +100,7 @@ class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMes
             try {
                 Field prefixJsonField = FieldUtils.getField(JsonPAwareMappingJacksonHttpMessageConverter.class, "prefixJson", true);
                 Object val = prefixJsonField.get(this);
-                assert val instanceof Boolean : "value must be a valid boolean";
+                Assert.isTrue(val instanceof Boolean, "value must be a valid boolean");
                 this._cachedPrefixJson = (Boolean) val;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -172,4 +108,5 @@ class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMes
         }
         return _cachedPrefixJson;
     }
+
 }
