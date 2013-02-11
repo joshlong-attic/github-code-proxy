@@ -1,5 +1,6 @@
 package com.joshlong.ghproxy;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -39,21 +40,19 @@ public class GithubProxyController {
     }
 
     @ResponseBody
-    @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
+    @RequestMapping( method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
     public String code(@PathVariable("user") String user,
                        @PathVariable("repo") String repo,
                        @PathVariable("branch") String branch,
                        @RequestParam("file") String file,
                        @RequestParam(value = "callback", required = false) String callback) {
-        String response;
-        String content = contentForGithubPage(user, repo, branch, file);
-        if (StringUtils.hasText(callback)) {
-            response = callback + "(\"" + encodeForJson(content) + "\")";
-        } else {
-            response = content;
-        }
-        return response;
+
+        if (StringUtils.hasText(callback)) JsonPAwareMappingJacksonHttpMessageConverter.setCallbackName(callback);
+
+        return contentForGithubPage(user, repo, branch, file);
+
     }
+
 
     protected String encodeForJson(String content) {
         return content.replaceAll("\"", "\\\"");

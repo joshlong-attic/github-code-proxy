@@ -23,7 +23,7 @@ public class WebMvcConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new JsonPAwareMappingJacksonHttpMessageConverter());
-    }
+     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+         converters.add(new JsonPAwareMappingJacksonHttpMessageConverter());
+     }
 }

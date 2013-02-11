@@ -10,9 +10,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -28,27 +30,40 @@ public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJackson
 
     private Boolean _cachedPrefixJson = null;
 
+    private Charset characterSet = Charset.defaultCharset();
+
     private List<MediaType> mediaTypesSupportingJsonp = Arrays.asList(
-            new MediaType("application", "x-javascript"),
-            new MediaType("application", "jsonp"));
+            new MediaType("application", "x-javascript", characterSet),
+            new MediaType("application", "x-json", characterSet),
+            new MediaType("application", "jsonp", characterSet));
+
+    private static final ThreadLocal<String> callbackNameThreadLocal = new ThreadLocal<String>();
+
+    public static void setCallbackName(String callbackName) {
+        callbackNameThreadLocal.set(null);
+        callbackNameThreadLocal.set(callbackName);
+    }
 
     @Override
     public List<MediaType> getSupportedMediaTypes() {
         Set<MediaType> mts2 = new LinkedHashSet<MediaType>();
         mts2.addAll(this.mediaTypesSupportingJsonp);
         mts2.addAll(super.getSupportedMediaTypes());
-        mts2.add(new MediaType("application", "json"));
+        mts2.add(new MediaType("application", "json", this.characterSet));
         return new ArrayList<MediaType>(mts2);
     }
 
     @Override
-    protected void writeInternal(Object object, HttpOutputMessage outputMessage)
-            throws IOException, HttpMessageNotWritableException {
-
+    protected void writeInternal(Object object, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
 
         MediaType contentType = outputMessage.getHeaders().getContentType();
-        boolean jsonpCallbackRequired = requiresJsonP(contentType);
+
+        String tlCallbackName = callbackNameThreadLocal.get();
+
+        String cbf = StringUtils.hasText(tlCallbackName) ? tlCallbackName : this.callbackFunctionName;
+
         JsonEncoding encoding = getJsonEncoding(contentType);
+
         JsonGenerator jsonGenerator = getObjectMapper().getJsonFactory().createJsonGenerator(outputMessage.getBody(), encoding);
 
         if (this.getObjectMapper().getSerializationConfig().isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
@@ -61,8 +76,11 @@ public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJackson
                 jsonGenerator.flush();
             }
 
+
+            boolean jsonpCallbackRequired = StringUtils.hasText(cbf);
+
             if (jsonpCallbackRequired) {
-                jsonGenerator.writeRaw(this.callbackFunctionName + "(");
+                jsonGenerator.writeRaw(cbf + "(");
                 jsonGenerator.flush();
             }
 
