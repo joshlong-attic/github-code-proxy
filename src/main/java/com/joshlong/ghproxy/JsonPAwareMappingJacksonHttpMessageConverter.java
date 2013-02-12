@@ -21,10 +21,11 @@ import java.util.*;
 
 /**
  * {@link MappingJacksonHttpMessageConverter mapping jackson http message converter}
- * subclass that can also handle JSONP requests. Based largely on the work
+ * subclass that can also handle JSONP requests.
  *
- * @author Andy Chan
  * @author Josh Long
+ * @author Andy Chan
+ * @author Rossen Stoyanchev
  */
 public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
 
