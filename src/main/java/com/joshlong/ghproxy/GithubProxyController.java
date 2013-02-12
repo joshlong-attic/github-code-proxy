@@ -1,6 +1,5 @@
 package com.joshlong.ghproxy;
 
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -46,11 +45,7 @@ public class GithubProxyController {
                        @PathVariable("branch") String branch,
                        @RequestParam("file") String file,
                        @RequestParam(value = "callback", required = false) String callback) {
-
-        if (StringUtils.hasText(callback)) JsonPAwareMappingJacksonHttpMessageConverter.setCallbackName(callback);
-
         return contentForGithubPage(user, repo, branch, file);
-
     }
 
 
