@@ -1,6 +1,5 @@
 package com.joshlong.ghproxy;
 
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -21,7 +20,16 @@ public class GithubProxyController {
 
     private RestTemplate restTemplate = new RestTemplate();
 
-    private String urlPath = "https://raw.github.com/{user}/{repo}/{branch}/code";
+    private String urlForCode = "https://raw.github.com/{user}/{repo}/{branch}/code";
+    private String urlForGist = "https://gist.github.com/{user}/{gist}/raw/";
+
+    protected String contentForGithubGist( String user, String gist)   {
+        Map<String, String> vars = new HashMap<String, String>();
+        vars.put("gist", gist);
+        vars.put("user" ,user) ;
+        ResponseEntity<String> gistResponse = restTemplate.getForEntity(urlForGist, String.class, vars);
+        return gistResponse.getBody();
+    }
 
     protected String contentForGithubPage(String user, String repos, String branch, String filePath) {
         Map<String, String> vars = new HashMap<String, String>();
@@ -29,7 +37,7 @@ public class GithubProxyController {
         vars.put("repo", repos);
         vars.put("branch", branch);
         ResponseEntity<String> code = restTemplate.getForEntity(
-                urlPath + filePath(filePath), String.class, vars);
+                urlForCode + filePath(filePath), String.class, vars);
         return code.getBody();
     }
 
@@ -39,8 +47,17 @@ public class GithubProxyController {
         return fp;
     }
 
+
     @ResponseBody
-    @RequestMapping( method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
+    @RequestMapping(method = RequestMethod.GET, value = "/gist/{user}/{gist}")
+    public String gist(@PathVariable("user") String user,
+                       @PathVariable("gist") String gist) {
+        return  this.contentForGithubGist( user, gist ) ;
+
+    }
+
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
     public String code(@PathVariable("user") String user,
                        @PathVariable("repo") String repo,
                        @PathVariable("branch") String branch,
