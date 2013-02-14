@@ -2,7 +2,6 @@ package com.joshlong.ghproxy;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,14 +18,14 @@ import java.util.Map;
 public class GithubProxyController {
 
     private RestTemplate restTemplate = new RestTemplate();
-
+    private String callbackNameAttribute = "callback";
     private String urlForCode = "https://raw.github.com/{user}/{repo}/{branch}/code";
     private String urlForGist = "https://gist.github.com/{user}/{gist}/raw/";
 
-    protected String contentForGithubGist( String user, String gist)   {
+    protected String contentForGithubGist(String user, String gist) {
         Map<String, String> vars = new HashMap<String, String>();
         vars.put("gist", gist);
-        vars.put("user" ,user) ;
+        vars.put("user", user);
         ResponseEntity<String> gistResponse = restTemplate.getForEntity(urlForGist, String.class, vars);
         return gistResponse.getBody();
     }
@@ -47,24 +46,26 @@ public class GithubProxyController {
         return fp;
     }
 
-
-    @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "/gist/{user}/{gist}")
+    @ResponseBody
     public String gist(@PathVariable("user") String user,
-                       @PathVariable("gist") String gist) {
-        return  this.contentForGithubGist( user, gist ) ;
+                       @PathVariable("gist") String gist,
+                       @JsonpCallback  String callback ) {
+
+
+        return contentForGithubGist(user, gist);
 
     }
 
-    @ResponseBody
+
     @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
+    @ResponseBody
     public String code(@PathVariable("user") String user,
                        @PathVariable("repo") String repo,
                        @PathVariable("branch") String branch,
                        @RequestParam("file") String file,
-                       @RequestParam(value = "callback", required = false) String callback) {
+                       @JsonpCallback String callback) {
 
-        if (StringUtils.hasText(callback)) JsonPAwareMappingJacksonHttpMessageConverter.setCallbackName(callback);
 
         return contentForGithubPage(user, repo, branch, file);
 
@@ -75,11 +76,4 @@ public class GithubProxyController {
         return content.replaceAll("\"", "\\\"");
     }
 
-    /*public static void main(String[] args) throws Throwable {
-        //https://github.com/joshlong/the-spring-tutorial/blob/tut_web/code/web/src/main/java/org/springsource/examples/spring31/web/config/servlet/CrmWebApplicationInitializer.java
-        GithubProxyController githubProxyController = new GithubProxyController();
-        String branchCode = githubProxyController.contentForGithubPage("joshlong", "the-spring-tutorial", "tut_web",
-                "web/src/main/java/org/springsource/examples/spring31/web/config/servlet/CrmWebApplicationInitializer.java");
-        System.out.println(branchCode);
-    }*/
 }
