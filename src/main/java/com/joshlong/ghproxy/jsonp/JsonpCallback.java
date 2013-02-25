@@ -1,4 +1,4 @@
-package com.joshlong.ghproxy;
+package com.joshlong.ghproxy.jsonp;
 
 import org.springframework.web.bind.annotation.ValueConstants;
 

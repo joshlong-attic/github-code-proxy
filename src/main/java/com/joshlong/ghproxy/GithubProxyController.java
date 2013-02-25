@@ -1,5 +1,7 @@
 package com.joshlong.ghproxy;
 
+import com.joshlong.ghproxy.jsonp.JsonWithPadding;
+import com.joshlong.ghproxy.jsonp.JsonpCallback;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;

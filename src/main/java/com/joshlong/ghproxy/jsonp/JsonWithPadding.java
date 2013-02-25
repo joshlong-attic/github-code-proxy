@@ -1,4 +1,4 @@
-package com.joshlong.ghproxy;
+package com.joshlong.ghproxy.jsonp;
 
 /**
  * Simple class that wraps whatever payload you'd

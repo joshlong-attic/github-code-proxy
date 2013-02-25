@@ -1,5 +1,7 @@
 package com.joshlong.ghproxy;
 
+import com.joshlong.ghproxy.jsonp.JsonpCallbackHandlerMethodArgumentResolver;
+import com.joshlong.ghproxy.jsonp.JsonpMappingJacksonHttpMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -36,14 +38,12 @@ public class WebMvcConfiguration
     @Override
     public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
        assert this.beanFactory != null ;
-      //  returnValueHandlers.add(new JsonpAwareMappingJacksonHttpMessageConverter.JsonpCallbackHandlerMethodReturnValueHandler()) ;
-
     }
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         assert this.beanFactory != null  : "the beanFactory can't be null" ;
-        argumentResolvers.add(new JsonpAwareMappingJacksonHttpMessageConverter.JsonpCallbackHandlerMethodArgumentResolver( this.beanFactory ));
+        argumentResolvers.add(new JsonpCallbackHandlerMethodArgumentResolver( this.beanFactory ));
     }
 
 
@@ -55,6 +55,6 @@ public class WebMvcConfiguration
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new JsonpAwareMappingJacksonHttpMessageConverter());
+        converters.add(new JsonpMappingJacksonHttpMessageConverter());
     }
 }
