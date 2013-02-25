@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 
 /**
  * this annotation marks method arguments as being the parameter
- * from which the current JSONP callback function name should be provided.
+ * from which the current JSONP setJsonPadding function name should be provided.
  * It works very much like a @{@link org.springframework.web.bind.annotation.RequestParam}
  * when used in a controller argument list. It can be used on the method level to
  * tell Spring MVC that it should simply pluck the
@@ -14,17 +14,17 @@ import java.lang.annotation.*;
  * So, for the usage:
  * <Code>
  * handleRequest(
- *   @{@link JsonpCallback} String callback
+ *   @{@link JsonpCallback} String setJsonPadding
  * )
  * </Code>
- * will have the attribute 'callback' made available as the callback name (and injected into the method invocation).
+ * will have the attribute 'setJsonPadding' made available as the setJsonPadding name (and injected into the method invocation).
  * <p/>
  * <code>
- * handleRequest( @{@link JsonpCallback}("cb") String callback )
+ * handleRequest( @{@link JsonpCallback}("cb") String setJsonPadding )
  * </code>
  * <p/>
- * will tell Spring MVC to lookup the JSONP callback annotation from the current request attribute (<code>"cb"</code>) and then
- * make it available as the callback.
+ * will tell Spring MVC to lookup the JSONP setJsonPadding annotation from the current request attribute (<code>"cb"</code>) and then
+ * make it available as the setJsonPadding.
  *
  *
  * @author Josh Long
@@ -34,7 +34,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface JsonpCallback {
-    String value() default "callback";
+    String value() default "setJsonPadding";
 
     boolean required() default true;
 

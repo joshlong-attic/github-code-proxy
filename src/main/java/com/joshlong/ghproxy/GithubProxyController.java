@@ -1,9 +1,9 @@
 package com.joshlong.ghproxy;
 
-import com.joshlong.ghproxy.jsonp.JsonWithPadding;
-import com.joshlong.ghproxy.jsonp.JsonpCallback;
+import com.joshlong.ghproxy.jsonp.JsonpContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,7 +20,6 @@ import java.util.Map;
 public class GithubProxyController {
 
     private RestTemplate restTemplate = new RestTemplate();
-    private String callbackNameAttribute = "callback";
     private String urlForCode = "https://raw.github.com/{user}/{repo}/{branch}/code";
     private String urlForGist = "https://gist.github.com/{user}/{gist}/raw/";
 
@@ -50,13 +49,12 @@ public class GithubProxyController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/gist/{user}/{gist}")
     @ResponseBody
-    public JsonWithPadding<  String > gist(@PathVariable("user") String user,
+    public String gist(@PathVariable("user") String user,
                        @PathVariable("gist") String gist,
-                       @RequestParam("callback")  String callback ) {
-
-
-        return new JsonWithPadding<String>( callback, contentForGithubGist(user, gist));
-
+                       @RequestParam("callback") String callback,
+                       JsonpContext context) {
+        context.setJsonPadding(StringUtils.hasText(callback) ? callback : "callback");
+        return contentForGithubGist(user, gist);
     }
 
     /*
@@ -72,7 +70,7 @@ public class GithubProxyController {
     /*
 
        // inspects a method level annotation '@JsonpCallback' for information
-       // on the name of the JSONP callback method parameter to be found in the request or, alternatively, just specifies the callback
+       // on the name of the JSONP setJsonPadding method parameter to be found in the request or, alternatively, just specifies the setJsonPadding
 
         <CODE>
           @JsonCallback( paddingRequestParameterName = '_cb')
@@ -87,17 +85,16 @@ public class GithubProxyController {
 
      */
 
-     // test
+ /*    // test
     // todo we should have a way of supporting the @JsonpCallback annotation at the method level
     // that tells the controller which
      @RequestMapping(method = RequestMethod.GET,  value = "/test")
      @ResponseBody
-     @JsonpCallback("cb")
-     public String  test ( @RequestParam String cb ){
-         System.out.println( "callback = "+ cb );
+     public String  test (JsonpContext   ctx ){
+          ctx.setJsonPadding("jqueryCallback");
          return "Hello world!" ;
      }
-
+*/
 
     @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
     @ResponseBody
@@ -105,16 +102,12 @@ public class GithubProxyController {
                        @PathVariable("repo") String repo,
                        @PathVariable("branch") String branch,
                        @RequestParam("file") String file,
-                       @JsonpCallback ("cb")  String callback) {
-
-
+                       @RequestParam  String callback,
+                       JsonpContext context) {
+        context.setJsonPadding(callback);
         return contentForGithubPage(user, repo, branch, file);
 
     }
 
-
-    protected String encodeForJson(String content) {
-        return content.replaceAll("\"", "\\\"");
-    }
 
 }

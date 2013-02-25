@@ -1,6 +1,7 @@
 package com.joshlong.ghproxy;
 
 import com.joshlong.ghproxy.jsonp.JsonpCallbackHandlerMethodArgumentResolver;
+import com.joshlong.ghproxy.jsonp.JsonpContextHandlerMethodArgumentResolver;
 import com.joshlong.ghproxy.jsonp.JsonpMappingJacksonHttpMessageConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -43,6 +44,7 @@ public class WebMvcConfiguration
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         assert this.beanFactory != null  : "the beanFactory can't be null" ;
+        argumentResolvers.add( new JsonpContextHandlerMethodArgumentResolver()) ;
         argumentResolvers.add(new JsonpCallbackHandlerMethodArgumentResolver( this.beanFactory ));
     }
 
