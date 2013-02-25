@@ -30,8 +30,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface JsonpCallback {
     String value() default "callback";
-
     boolean required() default true;
-
     String defaultValue() default ValueConstants.DEFAULT_NONE;
 }

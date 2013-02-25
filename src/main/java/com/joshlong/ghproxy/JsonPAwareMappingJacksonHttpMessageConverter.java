@@ -33,7 +33,7 @@ import java.util.*;
  * @author Andy Chan
  * @author Josh Long
  */
-public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
+public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
 
     private static String callbackNameAttribute = "callback";
     private static int scope = RequestAttributes.SCOPE_REQUEST;
@@ -81,7 +81,6 @@ public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJackson
                 jsonGenerator.flush();
             }
 
-
             boolean jsonpCallbackRequired = StringUtils.hasText(cbf);
 
             if (jsonpCallbackRequired) {
@@ -105,7 +104,7 @@ public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJackson
     protected boolean getPrefixJson() {
         if (null == _cachedPrefixJson) {
             try {
-                Field prefixJsonField = FieldUtils.getField(JsonpAwareMappingJacksonHttpMessageConverter.class, "prefixJson", true);
+                Field prefixJsonField = FieldUtils.getField( MappingJacksonHttpMessageConverter.class, "prefixJson", true);
                 Object val = prefixJsonField.get(this);
                 Assert.isTrue(val instanceof Boolean, "value must be a valid boolean");
                 this._cachedPrefixJson = (Boolean) val;
@@ -175,7 +174,7 @@ public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJackson
                 }
             }
             assert arg != null : "we must have resolved a value by this point";
-            JsonpAwareMappingJacksonHttpMessageConverter.registerCallback((String) arg);
+             registerCallback((String) arg);
             return arg;
         }
 
