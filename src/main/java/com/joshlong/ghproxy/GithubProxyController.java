@@ -48,14 +48,53 @@ public class GithubProxyController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/gist/{user}/{gist}")
     @ResponseBody
-    public String gist(@PathVariable("user") String user,
+    public JsonWithPadding<  String > gist(@PathVariable("user") String user,
                        @PathVariable("gist") String gist,
-                       @JsonpCallback  String callback ) {
+                       @RequestParam("callback")  String callback ) {
 
 
-        return contentForGithubGist(user, gist);
+        return new JsonWithPadding<String>( callback, contentForGithubGist(user, gist));
 
     }
+
+    /*
+
+        // Supports rendering using the Spring MVC specific type, 'JsonWithPadding'
+        <CODE>
+        public @ResponseBody  JsonWithPadding&lt;Foo&gt;  buildFoo (){
+            // ...
+        }
+        </CODE>
+     */
+
+    /*
+
+       // inspects a method level annotation '@JsonpCallback' for information
+       // on the name of the JSONP callback method parameter to be found in the request or, alternatively, just specifies the callback
+
+        <CODE>
+          @JsonCallback( paddingRequestParameterName = '_cb')
+          public  @ResponseBody Customer customer(){
+            // ...
+          }
+        </CODE>
+
+        Possible solutions:
+         - build an interceptor and some AOP to look at the controller classes?
+
+
+     */
+
+     // test
+    // todo we should have a way of supporting the @JsonpCallback annotation at the method level
+    // that tells the controller which
+     @RequestMapping(method = RequestMethod.GET,  value = "/test")
+     @ResponseBody
+     @JsonpCallback("cb")
+     public String  test ( @RequestParam String cb ){
+         System.out.println( "callback = "+ cb );
+         return "Hello world!" ;
+     }
 
 
     @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
@@ -64,7 +103,7 @@ public class GithubProxyController {
                        @PathVariable("repo") String repo,
                        @PathVariable("branch") String branch,
                        @RequestParam("file") String file,
-                       @JsonpCallback String callback) {
+                       @JsonpCallback ("cb")  String callback) {
 
 
         return contentForGithubPage(user, repo, branch, file);

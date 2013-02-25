@@ -19,6 +19,8 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
+import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -138,6 +140,9 @@ public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJackson
         RequestContextHolder.setRequestAttributes(attributes);
     }
 
+
+
+
     /**
      * @author Josh Long
      */
@@ -147,6 +152,7 @@ public class JsonpAwareMappingJacksonHttpMessageConverter extends MappingJackson
             private JsonpCallbackNamedValueInfo() {
                 super("", false, ValueConstants.DEFAULT_NONE);
             }
+
             private JsonpCallbackNamedValueInfo(JsonpCallback annotation) {
                 super(annotation.value(), annotation.required(), annotation.defaultValue());
             }
