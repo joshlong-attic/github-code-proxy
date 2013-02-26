@@ -85,11 +85,15 @@ public class GithubProxyController {
         }
     }
 
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.GET, value = "/cache/dump")
+    public String contents() {
+        return cache.toString();
+    }
 
-    @ResponseStatus( value = HttpStatus.OK)
-    @RequestMapping(method = RequestMethod.GET ,value =  "/cache/invalidate")
-    public void  invalidate (){
-        cache.clear();
+    @ResponseStatus(value = HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET, value = "/cache/invalidate")
+    public void invalidate() {
         cache.clear();
     }
 
@@ -110,8 +114,6 @@ public class GithubProxyController {
                 return contentForGithubPage(user, repo, branch, file);
             }
         });
-
-
     }
 
 
