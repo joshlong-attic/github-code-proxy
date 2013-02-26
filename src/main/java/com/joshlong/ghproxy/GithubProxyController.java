@@ -25,6 +25,8 @@ public class GithubProxyController {
     private String urlForCode = "https://raw.github.com/{user}/{repo}/{branch}/code";
     private String urlForGist = "https://gist.github.com/{user}/{gist}/raw/";
 
+    private Map<String, String> cache = new ConcurrentHashMap<String, String>();
+
     protected String contentForGithubGist(String user, String gist) {
         Map<String, String> vars = new HashMap<String, String>();
         vars.put("gist", gist);
@@ -43,14 +45,6 @@ public class GithubProxyController {
         return code.getBody();
     }
 
-    private String filePath(String fp) {
-        if (!fp.startsWith("/"))
-            fp = "/" + fp;
-        return fp;
-    }
-
-
-    private Map<String, String> cache = new ConcurrentHashMap<String, String>();
 
 
     @RequestMapping(method = RequestMethod.GET, value = "/gist/{user}/{gist}")
@@ -92,10 +86,19 @@ public class GithubProxyController {
     }
 
     @ResponseStatus(value = HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET, value = "/cache/{key}")
+    public void invalidate( @PathVariable("key") String k) {
+        cache.remove(k)  ;
+    }
+
+
+    @ResponseStatus(value = HttpStatus.OK)
     @RequestMapping(method = RequestMethod.GET, value = "/cache/invalidate")
     public void invalidate() {
         cache.clear();
     }
+
+
 
     @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
     @ResponseBody
@@ -114,6 +117,12 @@ public class GithubProxyController {
                 return contentForGithubPage(user, repo, branch, file);
             }
         });
+    }
+
+    private String filePath(String fp) {
+        if (!fp.startsWith("/"))
+            fp = "/" + fp;
+        return fp;
     }
 
 
