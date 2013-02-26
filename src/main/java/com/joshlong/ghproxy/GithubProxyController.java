@@ -1,6 +1,7 @@
 package com.joshlong.ghproxy;
 
 import com.joshlong.ghproxy.jsonp.JsonpContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -9,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple controller that simply forwards the request to the
@@ -47,65 +49,68 @@ public class GithubProxyController {
         return fp;
     }
 
+
+    private Map<String, String> cache = new ConcurrentHashMap<String, String>();
+
+
     @RequestMapping(method = RequestMethod.GET, value = "/gist/{user}/{gist}")
     @ResponseBody
-    public String gist(@PathVariable("user") String user,
-                       @PathVariable("gist") String gist,
+    public String gist(final @PathVariable("user") String user,
+                       final @PathVariable("gist") String gist,
                        @RequestParam("callback") String callback,
-                       JsonpContext context) {
+                       JsonpContext context) throws Throwable {
+
         context.setJsonPadding(StringUtils.hasText(callback) ? callback : "callback");
-        return contentForGithubGist(user, gist);
+
+        return fromCache(user + gist,
+                new CodeLoader() {
+                    @Override
+                    public String codeFor(String k) {
+                        return contentForGithubGist(user, gist);
+                    }
+                });
     }
 
-    /*
+    interface CodeLoader {
+        String codeFor(String k);
+    }
 
-        // Supports rendering using the Spring MVC specific type, 'JsonWithPadding'
-        <CODE>
-        public @ResponseBody  JsonWithPadding&lt;Foo&gt;  buildFoo (){
-            // ...
+    protected String fromCache(String k, CodeLoader codeLoader) throws Exception {
+        if (cache.containsKey(k)) {
+            return cache.get(k);
+        } else {
+            String x = codeLoader.codeFor(k);
+            cache.put(k, x);
+            return x;
         }
-        </CODE>
-     */
-
-    /*
-
-       // inspects a method level annotation '@JsonpCallback' for information
-       // on the name of the JSONP setJsonPadding method parameter to be found in the request or, alternatively, just specifies the setJsonPadding
-
-        <CODE>
-          @JsonCallback( paddingRequestParameterName = '_cb')
-          public  @ResponseBody Customer customer(){
-            // ...
-          }
-        </CODE>
-
-        Possible solutions:
-         - build an interceptor and some AOP to look at the controller classes?
+    }
 
 
-     */
-
- /*    // test
-    // todo we should have a way of supporting the @JsonpCallback annotation at the method level
-    // that tells the controller which
-     @RequestMapping(method = RequestMethod.GET,  value = "/test")
-     @ResponseBody
-     public String  test (JsonpContext   ctx ){
-          ctx.setJsonPadding("jqueryCallback");
-         return "Hello world!" ;
-     }
-*/
+    @ResponseStatus( value = HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.GET ,value =  "/cache/invalidate")
+    public void  invalidate (){
+        cache.clear();
+        cache.clear();
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/{user}/{repo}/{branch}/{module}")
     @ResponseBody
-    public String code(@PathVariable("user") String user,
-                       @PathVariable("repo") String repo,
-                       @PathVariable("branch") String branch,
-                       @RequestParam("file") String file,
-                       @RequestParam  String callback,
-                       JsonpContext context) {
+    public String code(final @PathVariable("user") String user,
+                       final @PathVariable("repo") String repo,
+                       final @PathVariable("branch") String branch,
+                       final @RequestParam("file") String file,
+                       @RequestParam String callback,
+                       JsonpContext context) throws Throwable {
+
         context.setJsonPadding(callback);
-        return contentForGithubPage(user, repo, branch, file);
+
+        return this.fromCache(user + repo + branch + file, new CodeLoader() {
+            @Override
+            public String codeFor(String k) {
+                return contentForGithubPage(user, repo, branch, file);
+            }
+        });
+
 
     }
 
