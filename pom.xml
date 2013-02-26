@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-     <groupId>com.joshlong.ghproxy</groupId>
+    <groupId>com.joshlong.ghproxy</groupId>
     <artifactId>web</artifactId>
     <packaging>war</packaging>
     <version>1.0.0-SNAPSHOT</version>
@@ -17,6 +17,16 @@
         <spring-security.version>3.1.3.RELEASE</spring-security.version>
         <spring-integration.version>2.1.1.RELEASE</spring-integration.version>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib-nodep</artifactId>
+                <version>2.2.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.fasterxml</groupId>
@@ -75,9 +85,12 @@
         <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>
-            <version>2.2.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>12.0.1</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
@@ -100,11 +113,6 @@
             <version>${springframework-version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>11.0</version>
-        </dependency>
         <dependency>
             <groupId>commons-dbcp</groupId>
             <artifactId>commons-dbcp</artifactId>
@@ -136,7 +144,6 @@
             <artifactId>spring-data-mongodb</artifactId>
             <version>1.1.1.RELEASE</version>
         </dependency>
-
 
 
         <dependency>
@@ -174,11 +181,7 @@
             <artifactId>antlr-runtime</artifactId>
             <version>3.1.2</version>
         </dependency>
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib-nodep</artifactId>
-            <version>2.2</version>
-        </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>

@@ -1,39 +1,32 @@
-package com.joshlong.ghproxy;
+package com.joshlong.ghproxy.jsonp;
 
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ValueConstants;
-import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.*;
 
 /**
- * {@link MappingJacksonHttpMessageConverter mapping jackson http message converter}
+ * {@link org.springframework.http.converter.json.MappingJacksonHttpMessageConverter mapping jackson http message converter}
  * subclass that can also handle JSONP requests. Based largely on the work
  *
  * @author Andy Chan
  * @author Josh Long
  */
-public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
+public class JsonpMappingJacksonHttpMessageConverter extends MappingJacksonHttpMessageConverter {
 
     private static String callbackNameAttribute = "callback";
     private static int scope = RequestAttributes.SCOPE_REQUEST;
@@ -81,6 +74,7 @@ public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJackson
                 jsonGenerator.flush();
             }
 
+
             boolean jsonpCallbackRequired = StringUtils.hasText(cbf);
 
             if (jsonpCallbackRequired) {
@@ -126,6 +120,7 @@ public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJackson
 
     public static void registerCallback(String callback) {
 
+        Assert.hasText( callback ,"you must specify a callback");
 
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         attributes.removeAttribute(callbackNameAttribute, scope);
@@ -134,60 +129,11 @@ public class JsonPAwareMappingJacksonHttpMessageConverter extends MappingJackson
             return;
 
         attributes.setAttribute(callbackNameAttribute, callback, scope);
+
         RequestContextHolder.setRequestAttributes(attributes);
     }
 
-    /**
-     * @author Josh Long
-     */
-    public static class JsonpCallbackHandlerMethodArgumentResolver extends AbstractNamedValueMethodArgumentResolver {
 
-        public static class JsonpCallbackNamedValueInfo extends NamedValueInfo {
-            private JsonpCallbackNamedValueInfo() {
-                super("", false, ValueConstants.DEFAULT_NONE);
-            }
-            private JsonpCallbackNamedValueInfo(JsonpCallback annotation) {
-                super(annotation.value(), annotation.required(), annotation.defaultValue());
-            }
-        }
-
-        public JsonpCallbackHandlerMethodArgumentResolver(ConfigurableBeanFactory beanFactory) {
-            super(beanFactory);
-        }
-
-        @Override
-        protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
-            JsonpCallback jsonpCallback = parameter.getParameterAnnotation(JsonpCallback.class);
-            if (null != jsonpCallback) {
-                return new JsonpCallbackNamedValueInfo(jsonpCallback);
-            }
-            return new JsonpCallbackNamedValueInfo();
-        }
-
-        @Override
-        protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
-            Object arg = null;
-            String[] paramValues = request.getParameterValues(name);
-            if (paramValues != null) {
-                if (paramValues.length >= 1) {
-                    arg = paramValues[0];
-                }
-            }
-            assert arg != null : "we must have resolved a value by this point";
-             registerCallback((String) arg);
-            return arg;
-        }
-
-        @Override
-        protected void handleMissingValue(String name, MethodParameter parameter) throws ServletException {
-            throw new MissingServletRequestParameterException(name, parameter.getParameterType().getSimpleName());
-        }
-
-        @Override
-        public boolean supportsParameter(MethodParameter parameter) {
-            return parameter.hasParameterAnnotation(JsonpCallback.class);
-        }
-    }
 
 
 }
